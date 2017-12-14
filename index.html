@@ -63,12 +63,19 @@
 <body>
     <div class="load">
     <img class="point" src="point.png"> 
-    <img class="mytext" src="text.png"
+    <img class="mytext" src="text.png">
     </div>
+ 
 
+   
 
     <div id="container"></div>
 
+    <button id="playBut">pause</button>
+    <button id="pauseBut">pause</button>
+   
+
+    <input id="audio_file" type="file" accept="audio/*">
 
     <script src="js/three.js"></script>
     <script src="js/Detector.js"></script>
@@ -82,7 +89,9 @@
 
 
 <script>
-  
+
+
+   
 jQuery(document).ready(function($) {
     
     var container, stats;
@@ -95,33 +104,35 @@ jQuery(document).ready(function($) {
     var toDrag = [];
     var velocity = new THREE.Vector3();
     var direction = new THREE.Vector3();
+
     var Sound = new SoundBH("./sound2.mp3",16);
-   
-  
 
+    audio_file.onchange = function(){
+      Sound.change(URL.createObjectURL(this.files[0]));
+      console.log("changed!!");
+    };
 
+    playBut.onclick = function(){ Sound.play();};  
+    pauseBut.onclick = function(){ Sound.pause();};
+    
 // visualization code
+
 const CUBES_NUM = 70;
 const STEP = 16;
-const NO_SIGNAL = 120;
+const NO_SIGNAL = 140;
+
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 10000);
 camera.position.z = 1800;
 
-
-
-
-
     //light
     var ambientLight = new THREE.AmbientLight(0xcccccc);
     scene.add(ambientLight);
+
     var directionalLight = new THREE.DirectionalLight(0xffffff);
     directionalLight.position.set(2, 2, 0.5).normalize();
     directionalLight.intensity = 0.75;
     scene.add(directionalLight);
-
-
-
 
     //renderer
     var renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -130,25 +141,19 @@ camera.position.z = 1800;
     document.body.appendChild(renderer.domElement);
     document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 
-
-
-
     //shape
     geometry = new THREE.OctahedronBufferGeometry(30, 0);
+
     //material
     material = new THREE.MeshNormalMaterial(  );
     
-
-
-
     //shape + material
     mesh1 = new THREE.Mesh(geometry, material);
-    mesh1.position.x = -400;
+    mesh1.position.x = -200;
     mesh1.rotation.x = 0;
     mesh1.name = "mesh1";
     scene.add(mesh1);
     toDrag.push(mesh1);
-
 
     mesh2 = new THREE.Mesh(geometry, material);
     mesh2.position.x = 0;
@@ -157,17 +162,13 @@ camera.position.z = 1800;
     scene.add(mesh2);
     toDrag.push(mesh2);
 
-
     mesh3 = new THREE.Mesh(geometry, material);
-    mesh3.position.x = 400;
+    mesh3.position.x = 200;
     mesh3.rotation.x = 0;
     mesh3.name = "mesh3";
     scene.add(mesh3);
     toDrag.push(mesh3);
     
-
-
-
 var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
     floorGeometry.rotateX( - Math.PI / 2 );
     for ( var i = 0, l = floorGeometry.vertices.length; i < l; i ++ ) {
@@ -176,6 +177,7 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
       vertex.y += Math.random() * -500 - 300;
       vertex.z += Math.random() * -85 ;
     }
+
     for ( var i = 0, l = floorGeometry.faces.length; i < l; i ++ ) {
       var face = floorGeometry.faces[ i ];
       face.vertexColors[ 0 ] = new THREE.Color().setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
@@ -183,14 +185,13 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
       face.vertexColors[ 2 ] = new THREE.Color().setHSL( Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75 );
     }
     
-
-
-
     var floorMaterial = new THREE.MeshBasicMaterial( { vertexColors: THREE.VertexColors } );
     
     var floor = new THREE.Mesh( floorGeometry, floorMaterial );
         scene.add( floor );
-      //drag and change music
+
+
+    //drag and change music
     var selectedMesh = "mesh2";
     var dragControls = new THREE.DragControls( toDrag, camera, renderer.domElement );
       //드래그를 시작할때의 이벤트를 캐치
@@ -243,7 +244,7 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
           Sound.vol( (e.object.position.y + 200) / 400);
           console.log(e.object.position);
       });
-
+  
 
     //mousemove
     function onDocumentMouseMove( event ) {
@@ -251,16 +252,13 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
       mouseY = ( event.clientY - windowHalfY );
     }
 
-
-
     var speed1 = 0.01;
     var speed2 = 0.01;
     var speed3 = 0.01;
 
-
-
     function render() {
       requestAnimationFrame(render);
+
       mesh1.rotation.x += speed1;
       mesh1.rotation.y += speed1;
       mesh2.rotation.x += speed2;
@@ -268,27 +266,43 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
       mesh3.rotation.x += speed3;
       mesh3.rotation.y += speed3;
 
-
-
-
       for (let i = 0, n = 0; i < toDrag.length; i++, n+=STEP) {
-      toDrag[i].scale.y -= 0.85;
-      toDrag[i].scale.y += Sound.getGain() / ( NO_SIGNAL * 25 );
-      toDrag[i].scale.x -= 0.85;
-      toDrag[i].scale.x += Sound.getGain() / ( NO_SIGNAL * 25);
-      if (toDrag[i].scale.x <= 1) {
-        toDrag[i].scale.y = 1;
-        toDrag[i].scale.x = 1;
-      }
-       mesh1.position.x = -400;
-        mesh2.position.x = 0;
-        mesh3.position.x = 400;
-      }
+          
+          
+          toDrag[i].scale.y -= 0.85;
+          toDrag[i].scale.y += Sound.getGain() / ( NO_SIGNAL * 25 );
+            
+          toDrag[i].scale.x -= 0.85;
+          toDrag[i].scale.x += Sound.getGain() / ( NO_SIGNAL * 25);
 
+          console.log(toDrag[i].scale.y);
+
+          //지금 사운드에 비례해서 스케일을 키우면서 또한 지속적으로 0.85라는 값을 빼줘서 다시 원점으로 돌아가게 하고 있는데, 사운드가 지속적으로 소리가 크면 0.85를 계속 빼줘도 값이 원점으로 돌아가지 않고 계속 커지는 현상이 발생한다.
+          //스케일 값이 너무 크면, (이 값은 콘솔을 통해서 적당한 값을 체크해야한다.) 1로 리셋되도록 수정
+          if(toDrag[i].scale.y > 8){
+            toDrag[i].scale.x = toDrag[i].scale.y = 1;
+          } 
+
+          if (toDrag[i].scale.x <= 1) {
+            toDrag[i].scale.y = 1;
+            toDrag[i].scale.x = 1;
+          }
+
+        //마우스를 y축으로만 드래그할 수 있도록 x와 z축은 고정
+        toDrag[0].position.x = -200;
+        toDrag[1].position.x = 0;
+        toDrag[2].position.x = 200;
+        toDrag[0].position.z = 0;
+        toDrag[1].position.z = 0;
+        toDrag[2].position.z = 0;
+
+        //볼륨값을 정확하게 조절할 수 있도록 드래그 최대치를 200까지만 설정
+        if(toDrag[i].position.y > 200){ toDrag[i].position.y = 200};
+        if(toDrag[i].position.y < -200){ toDrag[i].position.y = -200};
+      }
 
       delta += 0.006;
       dist = 8;
-
 
       camera.position.x += ( mouseX - camera.position.x) * 0.1;
       camera.position.y += (- mouseY - camera.position.y) * 0.1;
@@ -296,9 +310,12 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
       camera.lookAt(scene.position);
       renderer.render(scene, camera);
     }
+
     render();
-  
-  
+
+  var windowHalfX = window.innerWidth / 2;
+  var windowHalfY = window.innerHeight / 2;
+
 
 
   $(document).ready(function(){
@@ -307,13 +324,8 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
         $(".load").animate({top: '-100%'});
     });
 });
-  
-
-
 
   
-  var windowHalfX = window.innerWidth / 2;
-  var windowHalfY = window.innerHeight / 2;
   
   function onWindowResize() {
     windowHalfX = window.innerWidth / 2;
@@ -322,8 +334,12 @@ var floorGeometry = new THREE.PlaneGeometry( 80000, 80000, 100, 100 );
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   }
+
   window.addEventListener("resize", onWindowResize, false);
 });
+
+
+
 </script>
 
 
